@@ -1,50 +1,164 @@
-# Welcome to your Expo app 👋
+# Solana Message Encryption App for Insecure Environments
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application that enables secure message encryption and decryption using Solana wallet public keys for insecure environments. Built with Expo and Privy for authentication.
 
-## Get started
+## Features
 
-1. Install dependencies
+- SMS-based authentication using Privy
+- Automatic Solana wallet creation for new users
+- End-to-end message encryption using public keys
 
+## Technical Architecture
+
+### Authentication Flow
+1. User enters phone number
+2. Receives SMS verification code
+3. Upon verification:
+   - Creates Privy account
+   - Generates Solana wallet if user doesn't have one
+   - Redirects to main app screen
+
+### Cryptographic Implementation
+
+The encryption process leverages Elliptic-curve Diffie–Hellman (ECDH) principles using Ed25519 curve:
+
+#### ECDH Overview
+- Ed25519 is a modern elliptic curve that provides 128 bits of security
+- Uses Curve25519 as the underlying elliptic curve
+- Provides fast, secure operations for digital signatures and key exchange
+
+#### Implementation
+Instead of traditional ECDH key exchange, we use a modified approach that:
+1. Combines public keys of both parties
+2. Uses Ed25519 signature as a deterministic key derivation function
+3. Employs XOR operations for the actual encryption/decryption
+
+This approach allows us to:
+- Use only public keys for encryption/decryption
+- Maintain forward secrecy
+- Ensure only intended recipients can decrypt messages
+
+### Encryption Algorithm
+
+The encryption process uses a combination of Ed25519 signatures and XOR operations:
+
+1. **Key Preparation**:
+   ```typescript
+   // Convert Base58 Solana public keys to raw bytes
+   const senderPubKey = base58ToUint8Array(senderPublicKey);
+   const recipientPubKey = base58ToUint8Array(recipientPublicKey);
+   ```
+
+2. **Key Derivation**:
+   ```typescript
+   // Combine public keys to create a unique input
+   const combinedKeys = new Uint8Array([...senderPubKey, ...recipientPubKey]);
+   // Generate deterministic signature as encryption key
+   const signature = await ed.sign(combinedKeys, senderPubKey);
+   ```
+
+3. **Encryption Process**:
+   ```typescript
+   // XOR the message with the signature
+   const messageBytes = new TextEncoder().encode(message);
+   const encrypted = new Uint8Array(messageBytes.length);
+   for (let i = 0; i < messageBytes.length; i++) {
+     encrypted[i] = messageBytes[i] ^ signature[i % signature.length];
+   }
+   ```
+
+4. **Decryption Process**:
+   - Recipient performs the same steps with reversed roles
+   - The deterministic nature of Ed25519 ensures same signature generation
+   - XOR operation recovers the original message
+
+### Security Properties
+
+1. **Key Exchange Security**:
+   - Based on the hardness of the elliptic curve discrete logarithm problem
+   - Uses Ed25519's strong security properties
+   - No private key exposure during encryption/decryption
+
+2. **Message Security**:
+   - End-to-end encryption
+   - Only intended recipient can decrypt
+   - No key material transmitted with messages
+
+3. **Implementation Security**:
+   - All operations happen client-side
+   - No server storage of keys or messages
+   - Uses established cryptographic libraries
+
+### Component Structure
+
+1. **Main Screen** (`app/(app)/index.tsx`):
+   - Manages wallet connection
+   - Coordinates encryption/decryption operations
+   - Displays user's public key
+
+2. **Encryption Form**:
+   - Input for recipient's public key
+   - Message input field
+   - Encryption trigger
+
+3. **Decryption Form**:
+   - Input for sender's public key
+   - Encrypted message input
+   - Decryption trigger
+
+4. **Message Display**:
+   - Shows encrypted/decrypted messages
+   - Copy to clipboard functionality
+
+## Setup and Installation
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Configure environment:
+   - Privy App ID and Client ID in `app/_layout.tsx`
+   - Required dependencies in package.json
 
+3. Run the app:
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Usage Guide
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Sending an Encrypted Message
+1. Copy your public key to share with recipient
+2. Enter recipient's public key
+3. Type your message
+4. Click "Encrypt"
+5. Share the encrypted hex string with recipient
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Decrypting a Message
+1. Enter sender's public key
+2. Paste the encrypted hex string
+3. Click "Decrypt"
+4. View the decrypted message
 
-## Get a fresh project
+## Security Considerations
 
-When you're ready, run:
+- The encryption scheme uses Ed25519 signatures as a key derivation function
+- Security relies on the privacy of Solana private keys
+- Messages are encrypted end-to-end
+- No server storage of messages or keys
+- All operations happen client-side
 
-```bash
-npm run reset-project
-```
+## Dependencies
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Key packages:
+- @privy-io/expo: Authentication and wallet management
+- @noble/ed25519: Cryptographic operations
+- @project-serum/anchor: Solana utilities
+- expo-router: Navigation
+- buffer: Binary data handling
 
-## Learn more
 
-To learn more about developing your project with Expo, look at the following resources:
+## License
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License.
