@@ -13,8 +13,6 @@ export function MessageDisplay({ title, message }: MessageDisplayProps) {
     Clipboard.setString(message);
     alert('Copied to clipboard!');
   };
-// 4jxaeNQgRDzervdaoK8mg8Wqe4SoSNo65eNA6pJ95hqu
-//  91757d256b1f10eb9e8255918bc295463a4ddf08e30c
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>{title}</ThemedText>

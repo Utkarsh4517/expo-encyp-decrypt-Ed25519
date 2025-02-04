@@ -11,12 +11,14 @@ import { MessageDisplay } from "../components/MessageDisplay";
 import { EncryptionForm } from "../components/encryption/EncryptionForm";
 import { ThemedText } from "@/components/ThemedText";
 import { base58ToUint8Array } from "../utils/utils";
+import { useMessages } from "../context/MessageContext";
 
 ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
 
 export default function EncryptScreen() {
   const wallet = useEmbeddedSolanaWallet();
   const [encryptedMessage, setEncryptedMessage] = useState('');
+  const { sendMessage } = useMessages();
 
   const handleEncrypt = async (message: string, recipientKey: string) => {
     try {
@@ -37,9 +39,13 @@ export default function EncryptScreen() {
         encrypted[i] = messageBytes[i] ^ signature[i % signature.length];
       }
 
-      setEncryptedMessage(Buffer.from(encrypted).toString('hex'));
+      const encryptedHex = Buffer.from(encrypted).toString('hex');
+      await sendMessage(recipientKey, encryptedHex);
+      setEncryptedMessage(encryptedHex);
+      
+      alert('Message sent successfully!');
     } catch (error) {
-      alert('Encryption failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      alert('Failed to send message: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

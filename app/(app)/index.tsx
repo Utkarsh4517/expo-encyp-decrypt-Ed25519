@@ -41,7 +41,16 @@ export default function HomeScreen() {
           >
             <ThemedText style={styles.buttonText}>Decrypt</ThemedText>
           </TouchableOpacity>
+
+       
         </View>
+        <View style={{height: 20}}> </View>
+        <TouchableOpacity 
+            style={[styles.button, styles.messagesButton]} 
+            onPress={() => router.push('/(app)/messages')}
+          >
+            <ThemedText style={styles.buttonText}>Messages</ThemedText>
+          </TouchableOpacity>
       </View>
 
       <ThemedText style={styles.logoutButton} onPress={() => {
@@ -91,6 +100,9 @@ const styles = StyleSheet.create({
   },
   decryptButton: {
     backgroundColor: '#f44336',
+  },
+  messagesButton: {
+    backgroundColor: '#2196F3',
   },
   buttonText: {
     color: 'white',

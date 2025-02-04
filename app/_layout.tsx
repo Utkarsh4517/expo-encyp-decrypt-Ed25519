@@ -12,6 +12,7 @@ import "react-native-reanimated";
 import { PrivyProvider } from "@privy-io/expo";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { MessagesProvider } from "./context/MessageContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -44,14 +45,19 @@ export default function RootLayout() {
       }}
       clientId={"client-id"}
     >
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <MessagesProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </MessagesProvider>
     </PrivyProvider>
   );
 }
+
+//  916768
+// 4jxaeNQgRDzervdaoK8mg8Wqe4SoSNo65eNA6pJ95hqu
